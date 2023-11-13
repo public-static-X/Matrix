@@ -1,5 +1,11 @@
+//import java.text.DecimalFormat;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Scanner;
+
 public class Matrix {
     
+    //private DecimalFormat df = new DecimalFormat("#.");
     private int nrow;
     private int ncol;
     private double[][] matrix;
@@ -38,6 +44,7 @@ public class Matrix {
         }
         return printer;
     }
+
 
     public Matrix add(Matrix B) {
         double[][] result = new double[this.nrow][this.ncol];
@@ -275,15 +282,13 @@ public class Matrix {
         return new Matrix(roundedMatrix);
     }
 
-    public Matrix back_substitution() {
+    private Matrix back_substitution() {
         double[][] X = new double[this.nrow][this.ncol];
         for (int i = 0; i < this.nrow; i++) {
             for (int j = 0; j < this.ncol; j++) {
                 X[i][j] = 0;
             }
         }
-
-        //int counter;
 
         for (int column = 0; column < this.nrow; column++) {
             double x;
@@ -303,9 +308,65 @@ public class Matrix {
             return new Matrix(X);
     }
 
+    public boolean equals(Matrix B) {
+
+        if(this.nrow != B.nrow | this.ncol != B.ncol) return false;
+        for (int i = 0; i < this.nrow; i++) {
+            for (int j = 0; j < this.nrow; j++) {
+                if(this.matrix[i][j] != B.matrix[i][j]) return false;
+            }
+        }
+        return true;
+    }
+
     public Matrix inverse() {
         this.QRdecomposition();
-        return this.get_R_matrix().back_substitution().multiplyMatrix(get_Q_matrix().transpose());
+        Matrix INV =  this.get_R_matrix().back_substitution().multiplyMatrix(get_Q_matrix().transpose());
+
+        if(this.multiplyMatrix(INV).Round().equals(Matrix.Identity(this.nrow))) return INV;
+        else throw new IllegalArgumentException("Matrix is singular");
+    }
+
+    public static Matrix read_txt(int numRow, int numCol, String filePath) {
+
+
+        ArrayList<String> arr = new ArrayList<>();
+        ArrayList<String> lines = new ArrayList<>();
+
+        //int numRow = 150;
+        //int numCol = 6;
+        double[][] mat = new double[numRow][numCol];
+
+        File file = new File(filePath);
+
+        try {
+            
+            int index = 0; // this is row index
+            Scanner scan = new Scanner(file);
+            
+            while(scan.hasNextLine()) {
+                arr.add(scan.nextLine());
+                Scanner line = new Scanner(arr.get(index));
+                while(line.hasNext()) {
+                    lines.add( line.next()) ;
+                }
+                
+                for (int i = 0; i < lines.size(); i++) {
+                    mat[index][i] =  (Double.parseDouble(lines.get(i)) );
+                }
+                
+                lines.clear();
+                index++;
+            }
+            scan.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    
+        Matrix Data = new Matrix(mat);
+        return (Data);
+
     }
     
 }
